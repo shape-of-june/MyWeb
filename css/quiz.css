@@ -1,0 +1,18 @@
+/* Path: css/quiz.css */
+.hidden {
+    display: none;
+}
+/* make the quiz appear centered on the page */
+body {
+    width: 400px;
+    margin: 0 auto;
+}
+/* make the quiz more appealing */
+body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    padding: 0 0 10px 0;
+    margin: 0 0 0 0;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
