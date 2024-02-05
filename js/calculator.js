@@ -1,129 +1,258 @@
 const theBody = document.querySelector('body');
 const calculatorForm = document.querySelector('#calculator-form');
-const input = document.querySelector('#result');
+const result = document.querySelector('#result');
+const prevResult = document.querySelector('#prev-result');
 
-input.value = '0';
-let previousInput = '0';
-let previousOperator = '';
-let currentInput = '0';
+const ADD = '+';
+const SUBTRACT = '-';
+const MULTIPLY = '×';
+const DIVIDE = '÷';
+const LEFT_PARENTHESIS = '(';
+const RIGHT_PARENTHESIS = ')';
+const EQUALS = '=';
+const DECIMAL = '.';
+const ERROR = 'Error';
 
-function calculate(){
-    if(previousOperator === '+'){
-        previousInput = (Number(previousInput) + Number(currentInput)).toString();
-    } else if(previousOperator === '-'){
-        previousInput = (Number(previousInput) - Number(currentInput)).toString();
-    } else if(previousOperator === '*'){
-        previousInput = (Number(previousInput) * Number(currentInput)).toString();
-    } else if (previousOperator === '/'){ // if previousOperator === '/'
-        if(currentInput === '0'){
-            input.value = 'ERROR';
-            previousOperator = '';
+
+const queue = [];
+const operatorStack = [];
+const operandStack = [];
+let currentInput = '';
+let AfterEquals = false;
+
+function calculateFromStacks(){
+    let num2 = operandStack.pop();
+    let num1 = operandStack.pop();
+    let operator = operatorStack.pop();
+    if(operator === ADD){
+        operandStack.push(num1 + num2);
+    } else if(operator === SUBTRACT){
+        operandStack.push(num1 - num2);
+    } else if(operator === MULTIPLY){
+        operandStack.push(num1 * num2);
+    } else{
+        if(num2 === 0){
+            result.innerHTML = ERROR;
             return;
         }
-        previousInput = (Number(previousInput) / Number(currentInput)).toString();
-    } else return;
-    currentInput = '0';
-    input.value = previousInput;
-    previousOperator = '=';
-    return;
+        operandStack.push(num1 / num2);
+    }
 }
 
 function handleNumber(number){
+    if(AfterEquals){
+        currentInput = '';
+        queue.length = 0;
+        prevResult.innerHTML = 'Ans = ' + finalResult;
+        AfterEquals = false;
+    }
     if(currentInput === '0'){
         currentInput = number;
-    } else {
-        currentInput = currentInput + number;
+    } else{
+        currentInput += number;
     }
-    input.value = currentInput;
+    result.innerHTML = '';
+    for(let i = 0; i < queue.length; i++){
+        result.innerHTML += queue[i];
+    }
+    result.innerHTML += currentInput;
 }
 
-function handleDot(){
-    if(currentInput.indexOf('.') === -1){
-        currentInput = currentInput + '.';
+function handleOperator(operator){
+    if(AfterEquals){
+        queue.length = 0;
+        prevResult.innerHTML = 'Ans = ' + finalResult;
+        AfterEquals = false;
     }
-    input.value = currentInput;
+    if(currentInput !== ''){
+        queue.push(currentInput);
+    }
+    queue.push(operator);
+    currentInput = '';
+    result.innerHTML = '';
+    for(let i = 0; i < queue.length; i++){
+        result.innerHTML += queue[i];
+    }
 }
 
-function handleSymbol(symbol){
-    if(symbol === '~'){ // clear
-        previousInput = '0';
-        previousOperator = '';
-        currentInput = '0';
-        input.value = '0';
+function handleEquals(){
+    if(AfterEquals){
         return;
-    } else if(symbol === '!'){ // backspace
-        if(currentInput.length === 1){
-            currentInput = '0';
-        } else {
-            currentInput = currentInput.slice(0, -1);
+    }
+    if(currentInput !== ''){
+        queue.push(currentInput);
+    }
+    prevResult.innerHTML = '';
+    for(let i = 0; i < queue.length; i++){
+        prevResult.innerHTML += queue[i];
+    }
+    prevResult.innerHTML += EQUALS;
+
+    for(let i = 0; i < queue.length; i++){
+        if(isNaN(Number(queue[i]))){
+            if(operatorStack.length === 0){
+                operatorStack.push(queue[i]);
+            } else{
+                if(queue[i] === ADD || queue[i] === SUBTRACT){
+                    while(operatorStack.length >= 1 &&
+                        operandStack.length >= 2 &&
+                        operatorStack[operatorStack.length - 1] !== LEFT_PARENTHESIS){
+                        calculateFromStacks();
+                    }
+                    operatorStack.push(queue[i]);
+                } else if(queue[i] === MULTIPLY || queue[i] === DIVIDE){
+                    while(operatorStack.length >= 1 &&
+                        operandStack.length >= 2 &&
+                        operatorStack[operatorStack.length - 1] !== ADD &&
+                        operatorStack[operatorStack.length - 1] !== SUBTRACT &&
+                        operatorStack[operatorStack.length - 1] !== LEFT_PARENTHESIS){
+                        calculateFromStacks();
+                    }
+                    operatorStack.push(queue[i]);
+                } else if(queue[i] === LEFT_PARENTHESIS){
+                    operatorStack.push(queue[i]);
+                } else{
+                    while(operatorStack.length >= 1 &&
+                        operandStack.length >= 2 &&
+                        operatorStack[operatorStack.length - 1] !== LEFT_PARENTHESIS){
+                        calculateFromStacks();
+                    }
+                    if(operatorStack[operatorStack.length - 1] === LEFT_PARENTHESIS){
+                        operatorStack.pop();
+                    } else{
+                        result.innerHTML = ERROR;
+                        return;
+                    }
+                }
+            }
+        } else{
+            operandStack.push(Number(queue[i]));
         }
-        input.value = currentInput;
-        return;
     }
-    else if(symbol === '='){
-        calculate();
-        return;
+    while(operatorStack.length >= 1 &&
+        operandStack.length >= 2){
+        calculateFromStacks();
     }
-    // if previousOperator is empty, set previousOperator to symbol and return
-    if(previousOperator === ''){
-        previousInput = currentInput;
-        currentInput = '0';
-        previousOperator = symbol;
-        return;
+
+    finalResult = operandStack.pop();
+    result.innerHTML = finalResult.toString();
+    currentInput = finalResult.toString();
+    queue.length = 0;
+    AfterEquals = true;
+}
+
+function handleDecimal(){
+    if(AfterEquals){
+        currentInput = '';
+        queue.length = 0;
+        prevResult.innerHTML = 'Ans = ' + finalResult;
+        AfterEquals = false;
     }
-    // if operator, calculate previous operator
-    calculate();
-    previousOperator = symbol;
-    return;
+    currentInput += DECIMAL;
+    result.innerHTML = '';
+    for(let i = 0; i < queue.length; i++){
+        result.innerHTML += queue[i];
+    }
+    result.innerHTML += currentInput;
+}
+
+
+function handleAC(){
+    currentInput = '0';
+    queue.length = 0;
+    result.innerHTML= '0';
+    prevResult.value = '';
+}
+
+function handleCE(){
+    if(currentInput.length === 0 && queue.length > 0){
+        if(queue.length > 0){
+            if(isNaN(Number(queue[queue.length - 1]))){
+                queue.pop();
+            }
+            else{
+                currentInput = queue.pop();
+                currentInput = currentInput.substring(0, currentInput.length - 1);
+            }
+        }
+    }
+    else if(currentInput.length === 1){
+        currentInput = '';
+    }
+    else{
+        currentInput = currentInput.substring(0, currentInput.length - 1);
+    }
+    result.innerHTML = '';
+    for(let i = 0; i < queue.length; i++){
+        result.innerHTML += queue[i];
+    }
+    result.innerHTML += currentInput;
+    // for no input left
+    if(result.innerHTML === ''){
+        result.innerHTML = '0';
+    }
 }
 
 function handleSubmit(event){
     event.preventDefault();
     switch(event.submitter.id){
-        case 'clear': handleSymbol('~');
+        case 'add': handleOperator(ADD);
         break;
-        case 'backspace': handleSymbol('!');
+        case 'subtract': handleOperator(SUBTRACT);
         break;
-        case 'add': handleSymbol('+');
+        case 'multiply': handleOperator(MULTIPLY);
         break;
-        case 'subtract': handleSymbol('-');
+        case 'divide': handleOperator(DIVIDE);
         break;
-        case 'multiply': handleSymbol('*');
+        case 'left-parenthesis': handleOperator(LEFT_PARENTHESIS);
         break;
-        case 'divide': handleSymbol('/');
+        case 'right-parenthesis': handleOperator(RIGHT_PARENTHESIS);
         break;
-        case 'equals': handleSymbol('=');
+        case 'equals': handleEquals();
         break;
-        case 'decimal': handleDot();
+        case 'decimal': handleDecimal();
+        break;
+        case 'all-clear': handleAC();
+        break;
+        case 'clear-entry': handleCE();
+        break;
+
         default: handleNumber(event.submitter.id);
     }
+    return;
 }
 
 function handleKeyEvent(event) {
     event.preventDefault();
-    if(event.key === '.'){
-        console.log('dot');
-        handleDot();
-        return;
-    } else if(!isNaN(Number(event.key))){
-        handleNumber(event.key);
-    } else{
+    if(isNaN(Number(event.key))){
         switch(event.key){
-            case 'Escape': handleSymbol('~');
+            case ADD: handleOperator(ADD);
             break;
-            case 'Backspace': handleSymbol('!');
+            case SUBTRACT: handleOperator(SUBTRACT);
             break;
-            case 'Enter': case '=': handleSymbol('=');
+            case '*': handleOperator(MULTIPLY);
             break;
-            case '+': case '-': 
-            case '*': case '/': handleSymbol(event.key);
+            case '/': handleOperator(DIVIDE);
+            break;
+            case LEFT_PARENTHESIS: handleOperator(LEFT_PARENTHESIS);
+            break;
+            case RIGHT_PARENTHESIS: handleOperator(RIGHT_PARENTHESIS);
+            break;
+            case EQUALS: case 'Enter': handleEquals();
+            break;
+            case DECIMAL: handleDecimal();
+            break;
+            case 'Escape': handleAC();
+            break;
+            case 'Backspace': handleCE();
             break;
             default: return;
         }
+    } else{
+        handleNumber(event.key);
     }
     return;
 }
-console.log('2.' + '3');
 
 theBody.addEventListener('keydown', handleKeyEvent);
 calculatorForm.addEventListener('submit', handleSubmit);
