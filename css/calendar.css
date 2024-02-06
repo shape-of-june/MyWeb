@@ -1,0 +1,35 @@
+.header{
+    width: 50%;
+    background-color: #f4f4f4;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+.prev-month, .next-month{
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    width : auto; 
+}
+.calendar-body{
+    width: 50%;
+    padding: 20px;
+    text-align: center;
+}
+.weekend1{
+    color: red;
+}
+.weekend2{
+    color: blue;
+}
+.not-current-month{
+    color: #e0e0e0;
+}
+.weekend1.not-current-month{
+    color: #ffcccc;
+}
+.weekend2.not-current-month{
+    color: #cce6ff;
+}

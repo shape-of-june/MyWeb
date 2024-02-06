@@ -3,9 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calender</title>
+    <title>Calendar</title>
+    <link rel="stylesheet" href="css/calendar.css">
 </head>
 <body>
-    
+    <div class="calendar">
+        <div class="header">
+            <button class="prev-month">&lt</button>
+            <span class="current-month-year">August 2020</span>
+            <button class="next-month">&gt</button>
+        </div>
+        <table class="calendar-body">
+            <tr>
+                <td class="weekend1">Sun</td>
+                <td>Mon</td>
+                <td>Tue</td>
+                <td>Wed</td>
+                <td>Thu</td>
+                <td>Fri</td>
+                <td class="weekend2">Sat</td>
+            </tr>
+        </table>
+    <script src="js/calendar.js"></script>
 </body>
 </html>
