@@ -33,3 +33,8 @@
 .weekend2.not-current-month{
     color: #cce6ff;
 }
+.today{
+    background-color: #f4f4f4;
+}
+
+

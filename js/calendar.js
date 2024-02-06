@@ -11,6 +11,8 @@ const Months = [
 const Dates = [];
 
 const date = new Date();
+let realCurrentMonth = date.getMonth();
+let realCurrentYear = date.getFullYear();
 let currentMonth = date.getMonth();
 let currentYear = date.getFullYear();
 
@@ -70,6 +72,11 @@ function renderCalendar() {
         }
         if(i % 7 === 6){
             cell.classList.add('weekend2');
+        }
+        if(realCurrentMonth === currentMonth &&
+            realCurrentYear === currentYear &&
+            Dates[i].isCurrentMonth && date.getDate() === Dates[i].date){
+            cell.classList.add('today');
         }
         calendarBody.lastChild.appendChild(cell);
     }
